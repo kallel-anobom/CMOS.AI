@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8003:8000"
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/taskmanager
+      - SECRET_KEY=your-secret-key-here
+      - PYTHONPATH=/app
+      - USER_ID=${UID}
+      - GROUP_ID=${GID}
+    depends_on:
+      - db
+    user: "${UID}:${GID}"
+
+  db:
+    image: postgres:15.8-alpine3.20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=taskmanager
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4:8.11.0
+    ports:
+      - 5050:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@user.comm
+      - PGADMIN_DEFAULT_PASSWORD=S&crect
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
